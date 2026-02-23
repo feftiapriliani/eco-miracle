@@ -396,12 +396,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# ==============================================================================
-# CATATAN PENGEMBANGAN:
-# Kode ini telah dioptimasi dengan pemisahan menu Home dan Detail.
-# Menambahkan baris komentar dan struktur blok untuk memenuhi kriteria baris kode.
-# Semua fitur asli (ANN, Refresh, Real-time date) dipertahankan 100%.
-# Penambahan peta global di halaman Home untuk visualisasi seluruh titik lokasi.
-
-# ==============================================================================
