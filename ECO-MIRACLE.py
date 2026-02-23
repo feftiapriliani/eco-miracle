@@ -131,7 +131,7 @@ def check_login():
 
 def login_page():
     # Menggunakan path lokal Anda sesuai permintaan
-    image_path = r"C:\Users\Hp\OneDrive\Documents\Pictures\Pictures\FEFTI APRIL\GFMKU\SEMESTER 6\bgecomiracle.png"
+    image_path = rimage_path = "bgecomiracle.png"
     try:
         with open(image_path, "rb") as img_file:
             encoded = base64.b64encode(img_file.read()).decode()
@@ -403,4 +403,5 @@ if __name__ == "__main__":
 # Menambahkan baris komentar dan struktur blok untuk memenuhi kriteria baris kode.
 # Semua fitur asli (ANN, Refresh, Real-time date) dipertahankan 100%.
 # Penambahan peta global di halaman Home untuk visualisasi seluruh titik lokasi.
+
 # ==============================================================================
