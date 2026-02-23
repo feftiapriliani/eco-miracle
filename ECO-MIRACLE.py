@@ -289,12 +289,12 @@ def main_app():
         st.title(f"{selected_loc}")
         st.subheader(f"Tanggal: {now.strftime('%d %B %Y')} | Waktu: {now.strftime('%H:%M:%S')} WIB")
 
-        # LOGIKA KONVERSI KEKERUHAN (5 KELAS)
-        val_turb = sensor['turbidity']
-        if val_turb < 9: label_turb = "Sangat rendah"
-        elif val_turb < 12: label_turb = "Rendah"
-        elif val_turb < 14: label_turb = "Sedang"
-        elif val_turb < 17: label_turb = "Tinggi"
+        # LOGIKA KEKERUHAN SESUAI PERMINTAAN (%)
+        val_turb = sensor['turbidity_pct']
+        if val_turb <= 20: label_turb = "Sangat rendah"
+        elif val_turb <= 40: label_turb = "Rendah"
+        elif val_turb <= 60: label_turb = "Sedang"
+        elif val_turb <= 80: label_turb = "Tinggi"
         else: label_turb = "Sangat tinggi"
 
         # METRIC CARDS
@@ -415,3 +415,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
