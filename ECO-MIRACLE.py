@@ -291,11 +291,11 @@ def main_app():
 
         # LOGIKA KONVERSI KEKERUHAN (5 KELAS)
         val_turb = sensor['turbidity']
-        if val_turb < 9: label_turb = "sangat rendah"
-        elif val_turb < 12: label_turb = "rendah"
-        elif val_turb < 14: label_turb = "sedang"
-        elif val_turb < 17: label_turb = "tinggi"
-        else: label_turb = "sangat tinggi"
+        if val_turb < 9: label_turb = Sangat rendah"
+        elif val_turb < 12: label_turb = "Rendah"
+        elif val_turb < 14: label_turb = "Sedang"
+        elif val_turb < 17: label_turb = "Tinggi"
+        else: label_turb = "Sangat tinggi"
 
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
@@ -333,7 +333,7 @@ def main_app():
         W1, b1, W2, b2 = create_ann_model()
         input_val = np.array([sensor['co2']/2000, (sensor['co2']-10)/2000])
         prediction = ann_predict_single(input_val, W1, b1, W2, b2)
-        pred_co2 = float(np.clip(prediction * 1000 + 500, 300, 2000))
+        pred_co2 = float(np.clip(prediction * 1000 + 500, 700, 850))
 
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin-bottom: 40px;">
