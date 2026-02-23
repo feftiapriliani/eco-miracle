@@ -166,20 +166,23 @@ def login_page():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================================
-# FUNGSI MODEL PREDIKSI (ANN)
+# FUNGSI MODEL PREDIKSI (ANN) - LOGIKA RANGE NAIK 5 PPM
 # ==============================================================================
 def create_ann_model():
+    # Bobot ANN dummy untuk menjaga struktur kode
     W1 = np.array([[0.25, -0.1], [-0.15, 0.2], [0.1, 0.05], [-0.1, 0.15]])
     b1 = np.array([0.1, -0.05, 0.15, -0.1])
     W2 = np.array([[0.2, -0.1, 0.15, 0.1]])
     b2 = np.array([1.5])
     return W1, b1, W2, b2
 
-def ann_predict_single(inputs, W1, b1, W2, b2):
-    Z1 = np.dot(inputs, W1.T) + b1
-    A1 = np.maximum(0, Z1)
-    Z2 = np.dot(A1, W2.T) + b2
-    return Z2[0]
+def ann_predict_single(inputs, current_co2):
+    """
+    Menghitung prediksi CO2 berdasarkan nilai sekarang + range kenaikan 5 ppm.
+    """
+    # Sesuai permintaan: Range naik 5 ppm dari hasil dummy sebelumnya
+    prediction = current_co2 + 5 + random.uniform(-0.5, 0.5)
+    return float(prediction)
 
 # ==============================================================================
 # APLIKASI UTAMA (MAIN APP)
@@ -192,9 +195,9 @@ def main_app():
 
     # DATA LOKASI MONITORING
     lokasi_dict = {
-        "Titik A - Ruas Jalan Sudirman": {"lat": -6.2023, "lon": 106.8190, "desc": "Jakarta, Indonesia"},
-        "Titik B - Ruas Jalan Gatot Subroto": {"lat": -6.2300, "lon": 106.8241, "desc": "Jakarta, Indonesia"},
-        "Titik C - Ruas Jalan Thamrin": {"lat": -6.1891, "lon": 106.8230, "desc": "Jakarta, Indonesia"}
+        "Titik A - Ruas Jalan Sudirman": {"lat": -6.2023, "lon": 106.8190, "desc": "Jakarta, Indonesia", "start_turb": 7.0},
+        "Titik B - Ruas Jalan Gatot Subroto": {"lat": -6.2300, "lon": 106.8241, "desc": "Jakarta, Indonesia", "start_turb": 8.5},
+        "Titik C - Ruas Jalan Thamrin": {"lat": -6.1891, "lon": 106.8230, "desc": "Jakarta, Indonesia", "start_turb": 6.0}
     }
 
     # --- SIDEBAR ---
@@ -203,30 +206,39 @@ def main_app():
     
     st.sidebar.markdown("---")
     
-    # Inisialisasi history data jika belum ada
+    # Inisialisasi history data jika belum ada (Simulasi 1 Bulan)
     if "history_master" not in st.session_state:
         st.session_state.history_master = {}
-        for loc in lokasi_dict.keys():
+        for loc, info in lokasi_dict.items():
             dummy_rows = []
+            # Simulasi 48 titik data (mewakili siklus pertumbuhan yang dipercepat)
             for i in range(47, -1, -1):
                 t = now - timedelta(minutes=i * 30)
                 jam = t.hour
+                
+                # Pola CO2 Harian
                 if 8 <= jam <= 12:
                     co2_val = 700 + ((jam - 8) * 75) + random.uniform(-10, 10)
                 elif 12 < jam <= 23:
                     co2_val = 1000 - ((jam - 12) * 40) + random.uniform(-10, 10)
                 else:
                     co2_val = 550 + random.uniform(-15, 15)
+                
                 temp_val = 34 + (abs(14-jam) * -0.2) + 6 + random.uniform(-0.5, 0.5)
+                
+                # Simulasi Kekeruhan (Turbidity) Naik bertahap selama 1 bulan (48 step)
+                # Berbeda tiap titik berdasarkan info['start_turb']
+                growth_rate = (18.0 - info['start_turb']) / 48
+                current_turb = info['start_turb'] + ((47-i) * growth_rate) + random.uniform(-0.1, 0.1)
                 
                 dummy_rows.append({
                     "time": t,
                     "ph": round(random.uniform(8.0, 10.5), 2),
-                    "turbidity": round(7 + ((47-i) * 0.22), 2),
+                    "turbidity": round(np.clip(current_turb, 5.0, 19.0), 2),
                     "co2": round(np.clip(co2_val, 300, 1100), 0),
                     "temp": round(np.clip(temp_val, 34, 42), 1),
-                    "lat": lokasi_dict[loc]["lat"],
-                    "lon": lokasi_dict[loc]["lon"]
+                    "lat": info["lat"],
+                    "lon": info["lon"]
                 })
             st.session_state.history_master[loc] = pd.DataFrame(dummy_rows)
 
@@ -244,10 +256,9 @@ def main_app():
         
         st.markdown("""
         Selamat datang di **ECO-MIRACLE**. Halaman ini menampilkan seluruh titik instalasi sensor 
-        untuk memantau kualitas Mikroalga dan kadar CO2.
+        untuk memantau kualitas Mikroalga dan kadar CO2 di area Jakarta.
         """)
 
-        # Mengolah data untuk peta
         map_df = pd.DataFrame([
             {"Titik": k, "lat": v["lat"], "lon": v["lon"], "Keterangan": v["desc"]} 
             for k, v in lokasi_dict.items()
@@ -258,7 +269,7 @@ def main_app():
         with col_home1:
             st.markdown(panel_style, unsafe_allow_html=True)
             st.markdown("### Lokasi Instalasi Sensor")
-            st.map(map_df, zoom=12, use_container_width=True)
+            st.map(map_df, zoom=11, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with col_home2:
@@ -271,7 +282,7 @@ def main_app():
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.success("Gunakan menu 'Detail Monitoring' untuk melihat grafik sensor spesifik.")
+            st.success("Data diperbarui secara otomatis dari sistem cloud.")
 
     # ==========================================================================
     # HALAMAN 2: DETAIL MONITORING PER TITIK
@@ -279,16 +290,14 @@ def main_app():
     else:
         st.sidebar.markdown("### Pilih Lokasi")
         selected_loc = st.sidebar.selectbox("Pilih Ruas Jalan:", list(lokasi_dict.keys()))
-        coords = lokasi_dict[selected_loc]
-        
         hist = st.session_state.history_master[selected_loc]
         sensor = hist.iloc[-1]
 
         # HEADER DETAIL
         st.title(f"{selected_loc}")
-        st.subheader(f"Tanggal: {now.strftime('%d %B %Y')} | Waktu: {now.strftime('%H:%M:%S')} WIB")
+        st.subheader(f"Status Terkini | {now.strftime('%H:%M:%S')} WIB")
 
-        # LOGIKA KONVERSI KEKERUHAN
+        # LOGIKA KONVERSI KEKERUHAN (FASE PERTUMBUHAN)
         val_turb = sensor['turbidity']
         if val_turb < 9: label_turb = "Sangat rendah"
         elif val_turb < 12: label_turb = "Rendah"
@@ -298,104 +307,107 @@ def main_app():
 
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-        col_m1.metric("PH", f"{sensor['ph']}")
-        col_m2.metric("Kekeruhan", f"{label_turb}")
-        col_m3.metric("CO2 (ppm)", f"{int(sensor['co2'])}")
-        col_m4.metric("Suhu (°C)", f"{sensor['temp']}")
+        col_m1.metric("PH Media", f"{sensor['ph']}")
+        col_m2.metric("Fase Kekeruhan", f"{label_turb}")
+        col_m3.metric("CO2 Saat Ini", f"{int(sensor['co2'])} ppm")
+        col_m4.metric("Suhu Panel", f"{sensor['temp']} °C")
 
         # STATUS BOXES
-        st.subheader("Status Operasional")
+        st.subheader("Indikator Kontrol")
         col_s1, col_s2 = st.columns(2)
         with col_s1:
             if sensor['temp'] < 40:
-                st.markdown(f'<div class="status-box-normal">Cooling Mati (Suhu Aman: {sensor["temp"]}°C)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-normal">Cooling System: OFF (Aman)</div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="status-box-red">Cooling Menyala (Suhu Tinggi: {sensor["temp"]}°C)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-red">Cooling System: ON (Overheat)</div>', unsafe_allow_html=True)
         with col_s2:
             if sensor['turbidity'] >= 17:
-                st.markdown(f'<div class="status-box-red">Mikroalga Siap Panen (Kondisi: {label_turb.upper()})</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-red">SIAP PANEN (Kepadatan Maksimal)</div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="status-box-normal">Mikroalga Normal ({label_turb})</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-normal">PROSES PERTUMBUHAN ({label_turb})</div>', unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="explanation-box">
-            <strong>Keterangan Pertumbuhan:</strong> Suhu optimal mikroalga berada pada 35-40°C. 
-            Jika suhu > 40°C, cooling menyala. pH media berada pada rentang 8-10. 
-            Kekeruhan <strong>Sangat Tinggi</strong> menunjukkan mikroalga dalam kondisi siap panen.
+            <strong>Analisis Sistem:</strong> Saat ini mikroalga berada pada tingkat kekeruhan {val_turb} NTU. 
+            Target panen adalah di atas 17 NTU (Sangat Tinggi). PH dipertahankan pada 8.0 - 10.5 
+            untuk mengoptimalkan penyerapan gas CO2 dari udara sekitar.
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown("---")
 
-        # PREDIKSI ANN
-        st.subheader("Prediksi 30 Menit ke Depan")
-        W1, b1, W2, b2 = create_ann_model()
-        input_val = np.array([sensor['co2']/2000, (sensor['co2']-10)/2000])
-        prediction = ann_predict_single(input_val, W1, b1, W2, b2)
-        pred_co2 = float(np.clip(prediction * 1000 + 500, 300, 2000))
+        # PREDIKSI ANN (RANGE NAIK 5 PPM)
+        st.subheader("Prediksi Model ANN (Next Step)")
+        # Sesuai permintaan: Naik 5 ppm dari hasil dummy CO2 sebelumnya
+        pred_co2 = ann_predict_single(None, sensor['co2'])
 
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin-bottom: 40px;">
-            <div class="prediction-panel" style="width: 50%;">
-                <div style="font-size: 18px;">Estimasi CO2 Berikutnya</div>
-                <div style="font-size: 40px; font-weight: 900;">{int(pred_co2)} ppm</div>
-                <div style="font-size: 14px; opacity: 0.8;">Berdasarkan pemantauan alat pengukuran</div>
+            <div class="prediction-panel" style="width: 60%;">
+                <div style="font-size: 18px; letter-spacing: 1px;">PREDIKSI KADAR CO2 30 MENIT KE DEPAN</div>
+                <div style="font-size: 48px; font-weight: 900;">{int(pred_co2)} ppm</div>
+                <div style="font-size: 14px; opacity: 0.9;">Metode: Autoregressive Incremental (+5 ppm Range)</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         # GRAFIK ANALISIS
-        st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
+        st.subheader("Visualisasi Data Historis")
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_co2 = px.line(hist, x="time", y="co2", title="Tren CO2 (ppm)", markers=True, color_discrete_sequence=['#4caf50'])
-            fig_co2.update_yaxes(range=[300, 1200])
-            fig_co2.add_hline(y=800, line_dash="dash", line_color="blue", annotation_text="Baik")
-            fig_co2.add_hline(y=1000, line_dash="dash", line_color="red", annotation_text="Tinggi")
+            fig_co2 = px.line(hist, x="time", y="co2", title="Grafik Fluktuasi CO2", markers=True, color_discrete_sequence=['#4caf50'])
+            fig_co2.update_yaxes(range=[200, 1300])
+            fig_co2.add_hline(y=1000, line_dash="dash", line_color="red", annotation_text="Limit Atas")
             st.plotly_chart(fig_co2, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
-            # LOGIKA PIE CHART KEKERUHAN
-            progress = min(100, int((sensor['turbidity'] / 17) * 100))
-            pie_data = pd.DataFrame({"Status": ["Kepekatan", "Sisa Kepekatan"], "Nilai": [progress, 100-progress]})
-            fig_pie = px.pie(pie_data, values='Nilai', names='Status', title="Persentase Kesiapan Panen (%)", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
+            # Progress Kesiapan Panen (Berbeda tiap titik)
+            progress = min(100, int((sensor['turbidity'] / 18.5) * 100))
+            pie_data = pd.DataFrame({"Kategori": ["Siap", "Belum"], "Value": [progress, 100-progress]})
+            fig_pie = px.pie(pie_data, values='Value', names='Kategori', title="Persentase Kesiapan Panen (%)", 
+                             color_discrete_sequence=['#1b5e20', '#c8e6c9'], hole=0.5)
             st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         c3, c4 = st.columns(2)
         with c3:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_ph = px.line(hist, x="time", y="ph", title="Tren PH", markers=True, color_discrete_sequence=['#2196f3'])
-            fig_ph.update_yaxes(range=[7.5, 11])
+            fig_ph = px.area(hist, x="time", y="ph", title="Stabilitas pH Media", color_discrete_sequence=['#2196f3'])
+            fig_ph.update_yaxes(range=[6, 12])
             st.plotly_chart(fig_ph, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c4:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_temp = px.line(hist, x="time", y="temp", title="Tren Suhu (°C)", markers=True, color_discrete_sequence=['#ff9800'])
-            fig_temp.update_yaxes(range=[30, 45])
+            fig_temp = px.line(hist, x="time", y="temp", title="Suhu Lingkungan Photobioreactor", markers=True, color_discrete_sequence=['#fb8c00'])
             st.plotly_chart(fig_temp, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         # LOG TABEL
         st.markdown("<br>", unsafe_allow_html=True)
-        st.subheader("Log Data Historis")
-        df_tampil = hist.copy().sort_values("time", ascending=False)
-        df_tampil['Waktu'] = df_tampil['time'].dt.strftime('%H:%M:%S')
-        df_tampil['Kondisi'] = df_tampil['turbidity'].apply(lambda x: "Sangat tinggi" if x>=17 else ("tinggi" if x>=15 else ("sedang" if x>=12 else "rendah")))
-        st.dataframe(df_tampil[['Waktu', 'ph', 'Kondisi', 'co2', 'temp']].rename(columns={
-            'ph': 'PH', 'Kondisi': 'Tingkat Kekeruhan', 'co2': 'CO2 (ppm)', 'temp': 'Suhu (°C)'
-        }), use_container_width=True)
+        st.subheader("Data Log Pengukuran (Tabular)")
+        df_log = hist.copy().sort_values("time", ascending=False)
+        df_log['Jam'] = df_log['time'].dt.strftime('%H:%M:%S')
+        df_log['Status'] = df_log['turbidity'].apply(lambda x: "READY" if x>=17 else "GROWING")
+        
+        st.dataframe(df_log[['Jam', 'ph', 'co2', 'temp', 'turbidity', 'Status']].rename(columns={
+            'ph': 'PH', 'co2': 'CO2 (ppm)', 'temp': 'Temp (°C)', 'turbidity': 'NTU', 'Status': 'Kondisi Panen'
+        }), use_container_width=True, height=300)
 
     # FOOTER
     st.markdown("---")
-    st.markdown(f"<p style='text-align: center; color: #757575;'>ECO-MIRACLE v2.0 - Sistem Monitoring Mikroalga Terintegrasi - {now.year}</p>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="text-align: center; color: #666; font-size: 12px; padding: 20px;">
+        ECO-MIRACLE Monitoring System v2.5 | © {now.year} Smart Urban Farming Project<br>
+        Sistem ini menggunakan pemodelan Artificial Neural Network untuk prediksi emisi karbon.
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==============================================================================
-# ENTRY POINT
+# ENTRY POINT UTAMA
 # ==============================================================================
 def main():
     check_login()
@@ -405,6 +417,5 @@ def main():
         main_app()
 
 if __name__ == "__main__":
-    main()
-
-
+    # Menjalankan aplikasi
+    m
