@@ -131,7 +131,7 @@ def check_login():
 
 def login_page():
     # Menggunakan path lokal Anda sesuai permintaan
-    image_path = rimage_path = "bgecomiracle.png"
+    image_path = "bgecomiracle.png"
     try:
         with open(image_path, "rb") as img_file:
             encoded = base64.b64encode(img_file.read()).decode()
@@ -199,7 +199,7 @@ def main_app():
 
     # --- SIDEBAR ---
     st.sidebar.title("Navigasi")
-    nav_option = st.sidebar.radio("Menu Utama:", ["Titik Lokasi)", "Detail Monitoring"])
+    nav_option = st.sidebar.radio("Menu Utama:", ["Titik Lokasi", "Detail Monitoring"])
     
     st.sidebar.markdown("---")
     
@@ -238,7 +238,7 @@ def main_app():
     # ==========================================================================
     # HALAMAN 1: HOME (PETA SEMUA TITIK)
     # ==========================================================================
-    if nav_option == "Titik Lokasi)":
+    if nav_option == "Titik Lokasi":
         st.title("Sebaran Monitoring ECO-MIRACLE")
         st.subheader(f"Update Real-Time: {now.strftime('%d %B %Y')} | {now.strftime('%H:%M:%S')} WIB")
         
@@ -288,10 +288,18 @@ def main_app():
         st.title(f"{selected_loc}")
         st.subheader(f"Tanggal: {now.strftime('%d %B %Y')} | Waktu: {now.strftime('%H:%M:%S')} WIB")
 
+        # LOGIKA KONVERSI KEKERUHAN
+        val_turb = sensor['turbidity']
+        if val_turb < 9: label_turb = "sangat rendah"
+        elif val_turb < 12: label_turb = "rendah"
+        elif val_turb < 15: label_turb = "sedang"
+        elif val_turb < 17: label_turb = "tinggi"
+        else: label_turb = "sangat tinggi"
+
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("PH", f"{sensor['ph']}")
-        col_m2.metric("Kekeruhan (NTU)", f"{sensor['turbidity']}")
+        col_m2.metric("Kekeruhan", f"{label_turb}")
         col_m3.metric("CO2 (ppm)", f"{int(sensor['co2'])}")
         col_m4.metric("Suhu (°C)", f"{sensor['temp']}")
 
@@ -305,15 +313,15 @@ def main_app():
                 st.markdown(f'<div class="status-box-red">Cooling Menyala (Suhu Tinggi: {sensor["temp"]}°C)</div>', unsafe_allow_html=True)
         with col_s2:
             if sensor['turbidity'] >= 17:
-                st.markdown(f'<div class="status-box-red">Mikroalga Habis (Kekeruhan: {sensor["turbidity"]} NTU)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-red">Mikroalga Siap Panen (Kondisi: {label_turb.upper()})</div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="status-box-normal">Mikroalga Normal ({sensor["turbidity"]} NTU)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="status-box-normal">Mikroalga Normal ({label_turb})</div>', unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="explanation-box">
             <strong>Keterangan Pertumbuhan:</strong> Suhu optimal mikroalga berada pada 35-40°C. 
-            Jika suhu > 40°C, pertumbuhan terhenti. pH media berada pada rentang 8-10. 
-            Nilai Kekeruhan >= 17 NTU menunjukkan mikroalga siap panen (NBA).
+            Jika suhu > 40°C, cooling menyala. pH media berada pada rentang 8-10. 
+            Kekeruhan <strong>Sangat Tinggi</strong> menunjukkan mikroalga dalam kondisi siap panen.
         </div>
         """, unsafe_allow_html=True)
 
@@ -350,10 +358,11 @@ def main_app():
             
         with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_turb = px.line(hist, x="time", y="turbidity", title="Tren Kekeruhan (NTU)", markers=True, color_discrete_sequence=['#795548'])
-            fig_turb.update_yaxes(range=[5, 20])
-            fig_turb.add_hline(y=17, line_dash="dash", line_color="darkred", annotation_text="NBA (17)")
-            st.plotly_chart(fig_turb, use_container_width=True)
+            # LOGIKA PIE CHART KEKERUHAN
+            progress = min(100, int((sensor['turbidity'] / 17) * 100))
+            pie_data = pd.DataFrame({"Status": ["Kepadatan", "Sisa Kepekatan"], "Nilai": [progress, 100-progress]})
+            fig_pie = px.pie(pie_data, values='Nilai', names='Status', title="Persentase Kesiapan Panen (%)", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
+            st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         c3, c4 = st.columns(2)
@@ -376,8 +385,9 @@ def main_app():
         st.subheader("Log Data Historis")
         df_tampil = hist.copy().sort_values("time", ascending=False)
         df_tampil['Waktu'] = df_tampil['time'].dt.strftime('%H:%M:%S')
-        st.dataframe(df_tampil[['Waktu', 'ph', 'turbidity', 'co2', 'temp']].rename(columns={
-            'ph': 'PH', 'turbidity': 'Kekeruhan (NTU)', 'co2': 'CO2 (ppm)', 'temp': 'Suhu (°C)'
+        df_tampil['Kondisi'] = df_tampil['turbidity'].apply(lambda x: "sangat tinggi" if x>=17 else ("tinggi" if x>=15 else ("sedang" if x>=12 else "rendah")))
+        st.dataframe(df_tampil[['Waktu', 'ph', 'Kondisi', 'co2', 'temp']].rename(columns={
+            'ph': 'PH', 'Kondisi': 'Tingkat Kekeruhan', 'co2': 'CO2 (ppm)', 'temp': 'Suhu (°C)'
         }), use_container_width=True)
 
     # FOOTER
@@ -396,12 +406,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# ==============================================================================
-# CATATAN PENGEMBANGAN:
-# Kode ini telah dioptimasi dengan pemisahan menu Home dan Detail.
-# Menambahkan baris komentar dan struktur blok untuk memenuhi kriteria baris kode.
-# Semua fitur asli (ANN, Refresh, Real-time date) dipertahankan 100%.
-# Penambahan peta global di halaman Home untuk visualisasi seluruh titik lokasi.
-
-# ==============================================================================
