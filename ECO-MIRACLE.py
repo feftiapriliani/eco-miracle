@@ -340,7 +340,7 @@ def main_app():
             <div class="prediction-panel" style="width: 50%;">
                 <div style="font-size: 18px;">Estimasi CO2 Berikutnya</div>
                 <div style="font-size: 40px; font-weight: 900;">{int(pred_co2)} ppm</div>
-                <div style="font-size: 14px; opacity: 0.8;">Berdasarkan Pemantauan Kecerdasan Buatan</div>
+                <div style="font-size: 14px; opacity: 0.8;">Berdasarkan Pemantauan Alat Pengukuran</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -423,5 +423,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
