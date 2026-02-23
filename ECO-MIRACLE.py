@@ -339,7 +339,7 @@ def main_app():
             <div class="prediction-panel" style="width: 50%;">
                 <div style="font-size: 18px;">Estimasi CO2 Berikutnya</div>
                 <div style="font-size: 40px; font-weight: 900;">{int(pred_co2)} ppm</div>
-                <div style="font-size: 14px; opacity: 0.8;">Berdasarkan Pemantauan Kecerdasan Buatan</div>
+                <div style="font-size: 14px; opacity: 0.8;">Berdasarkan pemantauan alat pengukuran</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -360,7 +360,7 @@ def main_app():
             st.markdown(panel_style, unsafe_allow_html=True)
             # LOGIKA PIE CHART KEKERUHAN
             progress = min(100, int((sensor['turbidity'] / 17) * 100))
-            pie_data = pd.DataFrame({"Status": ["Kepadatan", "Sisa Kepekatan"], "Nilai": [progress, 100-progress]})
+            pie_data = pd.DataFrame({"Status": ["Kepekatan", "Sisa Kepekatan"], "Nilai": [progress, 100-progress]})
             fig_pie = px.pie(pie_data, values='Nilai', names='Status', title="Persentase Kesiapan Panen (%)", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
             st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
@@ -385,7 +385,7 @@ def main_app():
         st.subheader("Log Data Historis")
         df_tampil = hist.copy().sort_values("time", ascending=False)
         df_tampil['Waktu'] = df_tampil['time'].dt.strftime('%H:%M:%S')
-        df_tampil['Kondisi'] = df_tampil['turbidity'].apply(lambda x: "sangat tinggi" if x>=17 else ("tinggi" if x>=15 else ("sedang" if x>=12 else "rendah")))
+        df_tampil['Kondisi'] = df_tampil['turbidity'].apply(lambda x: "Sangat tinggi" if x>=17 else ("tinggi" if x>=15 else ("sedang" if x>=12 else "rendah")))
         st.dataframe(df_tampil[['Waktu', 'ph', 'Kondisi', 'co2', 'temp']].rename(columns={
             'ph': 'PH', 'Kondisi': 'Tingkat Kekeruhan', 'co2': 'CO2 (ppm)', 'temp': 'Suhu (°C)'
         }), use_container_width=True)
@@ -406,3 +406,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
