@@ -345,7 +345,7 @@ def main_app():
         """, unsafe_allow_html=True)
 
         # GRAFIK ANALISIS
-        st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
+st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(panel_style, unsafe_allow_html=True)
@@ -355,6 +355,7 @@ def main_app():
             fig_co2.add_hline(y=1000, line_dash="dash", line_color="red", annotation_text="Tinggi")
             st.plotly_chart(fig_co2, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
+            
             
         with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
@@ -426,6 +427,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
