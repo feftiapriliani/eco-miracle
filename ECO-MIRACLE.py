@@ -362,7 +362,7 @@ def main_app():
             # LOGIKA PIE CHART RANDOM (BERDASARKAN SENSOR WARNA)
             persen_warna = sensor['color_sensor_pct']
             pie_data = pd.DataFrame({
-                "Kategori": ["Kekeruhan Warna", "Sisa Kapasitas"],
+                "Kategori": ["Kekeruhan", "Sisa"],
                 "Nilai": [persen_warna, 100 - persen_warna]
             })
             fig_pie = px.pie(
@@ -423,4 +423,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
