@@ -345,7 +345,7 @@ def main_app():
         """, unsafe_allow_html=True)
 
         # GRAFIK ANALISIS
-st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
+        st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(panel_style, unsafe_allow_html=True)
@@ -356,23 +356,11 @@ st.subheader("Analisis Riwayat Data (24 Jam Terakhir)")
             st.plotly_chart(fig_co2, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
-            
         with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
-            # LOGIKA PIE CHART RANDOM (BERDASARKAN SENSOR WARNA)
             persen_warna = sensor['color_sensor_pct']
-            pie_data = pd.DataFrame({
-                "Kategori": ["Kekeruhan", "Sisa"],
-                "Nilai": [persen_warna, 100 - persen_warna]
-            })
-            fig_pie = px.pie(
-                pie_data, 
-                values='Nilai', 
-                names='Kategori', 
-                title=f"Kesiapan Panen (Sensor Warna): {persen_warna}%",
-                color_discrete_sequence=['#2e7d32', '#e8f5e9'],
-                hole=0.4
-            )
+            pie_data = pd.DataFrame({"Kategori": ["Kekeruhan", "Sisa"], "Nilai": [persen_warna, 100 - persen_warna]})
+            fig_pie = px.pie(pie_data, values='Nilai', names='Kategori', title=f"Kesiapan Panen: {persen_warna}%", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
             st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -427,6 +415,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
