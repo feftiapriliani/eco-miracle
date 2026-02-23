@@ -321,8 +321,7 @@ def main_app():
         st.markdown(f"""
         <div class="explanation-box">
             <strong>Keterangan Pertumbuhan:</strong> Suhu optimal mikroalga berada pada 35-40°C. 
-            Jika suhu > 40°C, cooling menyala. pH media berada pada rentang 8-10. 
-            Kekeruhan pekat menunjukkan mikroalga dalam kondisi siap panen.
+            Jika suhu > 40°C, cooling menyala. Kekeruhan pekat menunjukkan mikroalga dalam kondisi siap panen.
         </div>
         """, unsafe_allow_html=True)
 
@@ -379,15 +378,19 @@ def main_app():
         c3, c4 = st.columns(2)
         with c3:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_ph = px.line(hist, x="time", y="ph", title="Tren PH", markers=True, color_discrete_sequence=['#2196f3'])
+            fig_ph = px.line(hist, x="time", y="ph", title="Tren pH (Tumbuh Baik: 8.5-10)", markers=True, color_discrete_sequence=['#2196f3'])
             fig_ph.update_yaxes(range=[7.5, 11])
+            # AMBANG BATAS PH BARU (8.5 - 10)
+            fig_ph.add_hrect(y0=8.5, y1=10.0, fillcolor="green", opacity=0.1, line_width=0, annotation_text="Rentang Optimal")
             st.plotly_chart(fig_ph, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c4:
             st.markdown(panel_style, unsafe_allow_html=True)
-            fig_temp = px.line(hist, x="time", y="temp", title="Tren Suhu (°C)", markers=True, color_discrete_sequence=['#ff9800'])
+            fig_temp = px.line(hist, x="time", y="temp", title="Tren Suhu (Rentang Optimal: 35-40°C)", markers=True, color_discrete_sequence=['#ff9800'])
             fig_temp.update_yaxes(range=[30, 45])
+            # AMBANG BATAS SUHU BARU (35 - 40)
+            fig_temp.add_hrect(y0=35, y1=40, fillcolor="orange", opacity=0.1, line_width=0, annotation_text="Rentang Optimal")
             st.plotly_chart(fig_temp, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -423,6 +426,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
