@@ -300,10 +300,9 @@ def main_app():
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("PH", f"{sensor['ph']}")
-        col_m2.metric("Kekeruhan", f"{label_turb}")
+        col_m2.metric("Kekeruhan", f"{label_turb} ({val_turb}%)")
         col_m3.metric("CO2 (ppm)", f"{int(sensor['co2'])}")
         col_m4.metric("Suhu (°C)", f"{sensor['temp']}")
-
         # STATUS BOXES
         st.subheader("Status Operasional")
         col_s1, col_s2 = st.columns(2)
@@ -356,11 +355,13 @@ def main_app():
             st.plotly_chart(fig_co2, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
-        with c2:
+            with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
-            persen_warna = sensor['color_sensor_pct']
-            pie_data = pd.DataFrame({"Kategori": ["Kekeruhan", "Sisa"], "Nilai": [persen_warna, 100 - persen_warna]})
-            fig_pie = px.pie(pie_data, values='Nilai', names='Kategori', title=f"Tingkat kekeruhan: {persen_warna}%", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
+            # PIE CHART LINEAR SESUAI PERSENTASE KEKERUHAN
+            pie_data = pd.DataFrame({"Kategori": [label_turb, "Sisa"], "Nilai": [val_turb, 100 - val_turb]})
+            fig_pie = px.pie(pie_data, values='Nilai', names='Kategori', 
+                             title=f"Tingkat Kekeruhan: {val_turb}% ({label_turb})", 
+                             color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.5)
             st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -415,6 +416,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
