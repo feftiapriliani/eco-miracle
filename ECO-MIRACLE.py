@@ -318,7 +318,7 @@ def main_app():
         elif current > max_val:
             current -= 1
         else:
-            current += 0.05  # naik pelan
+            current += 0.0000005  # naik pelan
 
         st.session_state.persen_turb = float(np.clip(current, 1, 100))
         persen_turb = round(st.session_state.persen_turb, 1)
@@ -439,4 +439,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
