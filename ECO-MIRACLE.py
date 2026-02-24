@@ -166,20 +166,52 @@ def login_page():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================================
-# FUNGSI MODEL PREDIKSI (ANN)
 # ==============================================================================
-def create_ann_model():
-    W1 = np.array([[0.25, -0.1], [-0.15, 0.2], [0.1, 0.05], [-0.1, 0.15]])
-    b1 = np.array([0.1, -0.05, 0.15, -0.1])
-    W2 = np.array([[0.2, -0.1, 0.15, 0.1]])
-    b2 = np.array([1.5])
-    return W1, b1, W2, b2
+# FUNGSI MODEL PREDIKSI (LSTM SEDERHANA)
+# ==============================================================================
 
-def ann_predict_single(inputs, W1, b1, W2, b2):
-    Z1 = np.dot(inputs, W1.T) + b1
-    A1 = np.maximum(0, Z1)
-    Z2 = np.dot(A1, W2.T) + b2
-    return Z2[0]
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def create_lstm_model():
+    input_size = 1
+    hidden_size = 4
+
+    np.random.seed(42)
+
+    Wf = np.random.randn(hidden_size, input_size + hidden_size)
+    Wi = np.random.randn(hidden_size, input_size + hidden_size)
+    Wc = np.random.randn(hidden_size, input_size + hidden_size)
+    Wo = np.random.randn(hidden_size, input_size + hidden_size)
+
+    bf = np.zeros(hidden_size)
+    bi = np.zeros(hidden_size)
+    bc = np.zeros(hidden_size)
+    bo = np.zeros(hidden_size)
+
+    return Wf, Wi, Wc, Wo, bf, bi, bc, bo
+
+
+def lstm_predict(sequence, model):
+    Wf, Wi, Wc, Wo, bf, bi, bc, bo = model
+
+    hidden_size = Wf.shape[0]
+    h = np.zeros(hidden_size)
+    c = np.zeros(hidden_size)
+
+    for x in sequence:
+        x = np.array([x])
+        combined = np.concatenate((h, x))
+
+        f = sigmoid(np.dot(Wf, combined) + bf)
+        i = sigmoid(np.dot(Wi, combined) + bi)
+        c_hat = np.tanh(np.dot(Wc, combined) + bc)
+
+        c = f * c + i * c_hat
+        o = sigmoid(np.dot(Wo, combined) + bo)
+        h = o * np.tanh(c)
+
+    return h.mean()
 
 # ==============================================================================
 # APLIKASI UTAMA (MAIN APP)
@@ -352,12 +384,18 @@ def main_app():
 
         st.markdown("---")
 
-        # PREDIKSI ANN
+        # PREDIKSI LSTM
         st.subheader("Prediksi 30 Menit ke Depan")
-        W1, b1, W2, b2 = create_ann_model()
-        input_val = np.array([sensor['co2']/2000, (sensor['co2']-10)/2000])
-        prediction = ann_predict_single(input_val, W1, b1, W2, b2)
-        pred_co2 = float(np.clip(prediction * 1000 + 500, 650, 850))
+
+        model = create_lstm_model()
+
+        # Ambil 6 data CO2 terakhir (3 jam terakhir)
+        co2_series = hist["co2"].values[-6:]
+        co2_norm = co2_series / 2000  # normalisasi
+
+        prediction = lstm_predict(co2_norm, model)
+
+        pred_co2 = float(np.clip(prediction * 1000 + 700, 650, 850))
 
         st.markdown(f"""
         <div style="display: flex; justify-content: center; margin-bottom: 40px;">
@@ -439,6 +477,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
