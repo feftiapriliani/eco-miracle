@@ -291,11 +291,21 @@ def main_app():
 
         # LOGIKA KONVERSI KEKERUHAN (5 KELAS)
         val_turb = sensor['turbidity']
-        if val_turb < 9: label_turb = "Sangat rendah"
-        elif val_turb < 12: label_turb = "Rendah"
-        elif val_turb < 14: label_turb = "Sedang"
-        elif val_turb < 17: label_turb = "Tinggi"
-        else: label_turb = "Sangat tinggi"
+        if val_turb < 9:
+            label_turb = "Sangat rendah"
+            persen_turb = random.randint(1, 20)
+        elif val_turb < 12:
+            label_turb = "Rendah"
+            persen_turb = random.randint(21, 40)
+        elif val_turb < 14:
+            label_turb = "Sedang"
+            persen_turb = random.randint(41, 60)
+        elif val_turb < 17:
+            label_turb = "Tinggi"
+            persen_turb = random.randint(61, 80)
+        else:
+            label_turb = "Sangat tinggi"
+            persen_turb = random.randint(81, 100)
 
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
@@ -415,3 +425,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
