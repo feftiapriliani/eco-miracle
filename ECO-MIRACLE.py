@@ -289,24 +289,39 @@ def main_app():
         st.title(f"{selected_loc}")
         st.subheader(f"Tanggal: {now.strftime('%d %B %Y')} | Waktu: {now.strftime('%H:%M:%S')} WIB")
 
-        # LOGIKA KONVERSI KEKERUHAN (5 KELAS)
+       # Inisialisasi persen jika belum ada
+        if "persen_turb" not in st.session_state:
+            st.session_state.persen_turb = 10
+
         val_turb = sensor['turbidity']
         if val_turb < 9:
             label_turb = "Sangat rendah"
-            persen_turb = random.randint(1, 20)
+            min_val, max_val = 1, 20
         elif val_turb < 12:
             label_turb = "Rendah"
-            persen_turb = random.randint(21, 40)
+            min_val, max_val = 21, 40
         elif val_turb < 14:
             label_turb = "Sedang"
-            persen_turb = random.randint(41, 60)
+            min_val, max_val = 41, 60
         elif val_turb < 17:
             label_turb = "Tinggi"
-            persen_turb = random.randint(61, 80)
+            min_val, max_val = 61, 80
         else:
             label_turb = "Sangat tinggi"
-            persen_turb = random.randint(81, 100)
+            min_val, max_val = 81, 100
 
+        # Gerak perlahan ke dalam range
+        current = st.session_state.persen_turb
+
+        if current < min_val:
+            current += 1
+        elif current > max_val:
+            current -= 1
+        else:
+            current += 0.05  # naik pelan
+
+        st.session_state.persen_turb = float(np.clip(current, 1, 100))
+        persen_turb = round(st.session_state.persen_turb, 1)
         # METRIC CARDS
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("PH", f"{sensor['ph']}")
@@ -424,3 +439,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
