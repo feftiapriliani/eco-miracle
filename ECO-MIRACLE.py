@@ -218,7 +218,7 @@ def lstm_predict(sequence, model):
 # ==============================================================================
 def main_app():
     # REFRESH DATA SETIAP 1 DETIK
-    st_autorefresh(interval=1000, key="datarefresh")
+    st_autorefresh(interval=99000, key="datarefresh")
     now = datetime.now(ZoneInfo("Asia/Jakarta"))
     panel_style = """<div style="background-color: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.08);">"""
 
@@ -346,11 +346,11 @@ def main_app():
         current = st.session_state.persen_turb
 
         if current < min_val:
-            current += 1
+            current += 0.05
         elif current > max_val:
-            current -= 1
+            current -= 0.05
         else:
-            current += 0.000035 # naik pelan
+            current += 0.0005 # naik pelan
 
         st.session_state.persen_turb = float(np.clip(current, 1, 100))
         persen_turb = round(st.session_state.persen_turb, 1)
@@ -477,6 +477,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
