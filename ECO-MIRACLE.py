@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import base64
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import plotly.express as px
 from streamlit_autorefresh import st_autorefresh
 
@@ -218,7 +219,7 @@ def lstm_predict(sequence, model):
 def main_app():
     # REFRESH DATA SETIAP 1 DETIK
     st_autorefresh(interval=1000, key="datarefresh")
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Jakarta"))
     panel_style = """<div style="background-color: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.08);">"""
 
     # DATA LOKASI MONITORING
@@ -254,7 +255,7 @@ def main_app():
                     "time": t,
                     "ph": round(random.uniform(8.0, 10.5), 2),
                     "turbidity": round(7 + ((47-i) * 0.22), 2),
-                    "co2": round(np.clip(co2_val, 300, 1100), 0),
+                    "co2": round(np.clip(co2_val, 600, 900), 0),
                     "temp": round(np.clip(temp_val, 34, 42), 1),
                     "color_sensor_pct": random.randint(20, 98), # Data random sensor warna
                     "lat": lokasi_dict[loc]["lat"],
@@ -476,6 +477,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
