@@ -368,8 +368,8 @@ def main_app():
             
         with c2:
             st.markdown(panel_style, unsafe_allow_html=True)
-            persen_warna = sensor['color_sensor_pct']
-            pie_data = pd.DataFrame({"Kategori": ["Kekeruhan", "Sisa"], "Nilai": [persen_warna, 100 - persen_warna]})
+            pie_data = pd.DataFrame({"Kategori": ["Kekeruhan", "Sisa"], "Nilai": [persen_turb, 100 - persen_turb]})
+            fig_pie = px.pie(pie_data, values='Nilai', names='Kategori', title=f"Tingkat kekeruhan: {persen_turb}%", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
             fig_pie = px.pie(pie_data, values='Nilai', names='Kategori', title=f"Tingkat kekeruhan: {persen_warna}%", color_discrete_sequence=['#2e7d32', '#e8f5e9'], hole=0.4)
             st.plotly_chart(fig_pie, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
@@ -425,4 +425,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
