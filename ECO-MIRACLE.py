@@ -463,7 +463,7 @@ def main_app():
 
     # FOOTER
     st.markdown("---")
-    st.markdown(f"<p style='text-align: center; color: #757575;'>ECO-MIRACLE v2.0 - Sistem Monitoring Mikroalga Terintegrasi - {now.year}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; color: #757575;'>ECO-MIRACLE - Sistem Monitoring Mikroalga Terintegrasi - {now.year}</p>", unsafe_allow_html=True)
 
 # ==============================================================================
 # ENTRY POINT
@@ -477,6 +477,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
