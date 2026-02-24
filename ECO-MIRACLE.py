@@ -255,7 +255,7 @@ def main_app():
                     "time": t,
                     "ph": round(random.uniform(8.0, 10.5), 2),
                     "turbidity": round(7 + ((47-i) * 0.22), 2),
-                    "co2": round(np.clip(co2_val, 600, 900), 0),
+                    "co2": round(np.clip(co2_val, 700, 900), 0),
                     "temp": round(np.clip(temp_val, 34, 42), 1),
                     "color_sensor_pct": random.randint(20, 98), # Data random sensor warna
                     "lat": lokasi_dict[loc]["lat"],
@@ -477,6 +477,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
